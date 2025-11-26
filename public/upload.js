@@ -12,7 +12,8 @@ function uploadFile(file) {
   formData.append("caption", "");
   formData.append("consent", "yes");
 
-  fetch("/upload", {
+  fetch(window.location.origin + "/upload", {
+
     method: "POST",
     body: formData
   })
