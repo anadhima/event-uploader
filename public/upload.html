@@ -1,27 +1,37 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Upload Media</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8">
+  <title>Upload to Maria’s Birthday</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body class="plain">
-  <div class="card upload-card">
-    <h2>Upload Media</h2>
-    <p>Select a photo or video to share at Maria's party.</p>
+<body>
 
-    <form id="uploadForm" enctype="multipart/form-data">
-      <label class="field">
-        <span>Choose file</span>
-        <input type="file" name="media" accept="image/*,video/*" required />
-      </label>
+  <!-- BACK BUTTON -->
+  <button onclick="window.location.href='index.html'" class="back-btn">← Back to Home</button>
 
-      <button type="submit" class="big-btn small">Upload</button>
-    </form>
+  <div class="container">
+    <h1>Upload Media</h1>
 
-    <p id="status" class="status"></p>
+    <div class="btn-group">
+      <!-- DISPOSABLE CAMERA -->
+      <button class="btn" id="cameraBtn">Disposable Camera</button>
+
+      <!-- UPLOAD FROM GALLERY -->
+      <button class="btn" id="uploadBtn">Upload Media</button>
+    </div>
+
+    <!-- HIDDEN CAMERA INPUT -->
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none">
+
+    <!-- HIDDEN FILE INPUT -->
+    <input type="file" id="fileInput" accept="image/*,video/*" style="display:none">
+
+    <div id="status"></div>
   </div>
+
   <script src="upload.js"></script>
+
 </body>
 </html>
