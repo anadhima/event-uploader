@@ -61,7 +61,7 @@ async function uploadLargeFile(localPath, dropboxPath) {
 }
 
 // Upload endpoint
-app.post('/upload', upload.single('media'), async (req, res) => {
+app.post('/upload', upload.single('photo'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ ok:false, error:'No file' });
 
