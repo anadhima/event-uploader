@@ -3,28 +3,27 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Upload to Maria’s Birthday</title>
+  <title>Upload Photo</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body class="plain">
 
-  <!-- Back button -->
-  <button onclick="window.location.href='index.html'" class="back-btn">← Back to Home</button>
+<body class="hero">
 
-  <!-- Centered content -->
-  <div class="container">
-    <h1>Upload Media</h1>
+  <div class="hero-card">
 
-    <div class="btn-group">
-      <button class="btn" id="cameraBtn">Disposable Camera</button>
-      <button class="btn" id="uploadBtn">Upload Media</button>
-    </div>
+    <!-- Back Button -->
+    <button onclick="window.location.href='index.html'" class="back-btn">← Back to Home</button>
 
-    <!-- Hidden inputs -->
-    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none">
+    <h1>Upload Photo</h1>
+
+    <button class="big-btn" id="galleryBtn">
+      <span>🖼️</span> Choose From Gallery
+    </button>
+
     <input type="file" id="fileInput" accept="image/*,video/*" style="display:none">
 
-    <div id="status"></div>
+    <p id="status" class="status"></p>
+
   </div>
 
   <script src="upload.js"></script>
