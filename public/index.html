@@ -6,14 +6,70 @@
   <title>Maria's Birthday</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body class="hero">
   <div class="hero-card">
+    
     <h1>Maria’s Birthday</h1>
     <p class="date">26.11.2025</p>
 
-    <a class="big-btn" href="upload.html"><span>📸</span> Disposable Camera</a>
-    <a class="big-btn" href="upload.html"><span>🖼️</span> Upload Media</a>
-    <a class="big-btn" href="gallery.html"><span>🎉</span> View Gallery</a>
+    <!-- DISPOSABLE CAMERA: opens camera instantly -->
+    <button class="big-btn" id="cameraHomeBtn">
+      <span>📸</span> Disposable Camera
+    </button>
+
+    <!-- UPLOAD PHOTO: goes to upload page -->
+    <a class="big-btn" href="upload.html">
+      <span>🖼️</span> Upload Photo
+    </a>
+
+    <!-- VIEW GALLERY -->
+    <a class="big-btn" href="gallery.html">
+      <span>🎉</span> View Gallery
+    </a>
+
   </div>
+
+  <!-- CAMERA UPLOAD SCRIPT -->
+  <script>
+    document.getElementById("cameraHomeBtn").addEventListener("click", () => {
+      // create hidden file input that triggers the camera
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.capture = "environment"; // opens BACK camera on phones
+      input.style.display = "none";
+
+      // handle the upload after taking photo
+      input.addEventListener("change", () => {
+        const file = input.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("photo", file);
+        formData.append("name", "Guest");
+        formData.append("caption", "");
+        formData.append("consent", "yes");
+
+        fetch("/upload", {
+          method: "POST",
+          body: formData
+        })
+        .then(res => res.json())
+        .then(json => {
+          if (json.ok) {
+            alert("Photo uploaded — thank you!");
+          } else {
+            alert("Upload failed: " + json.error);
+          }
+        })
+        .catch(err => alert("Error: " + err));
+      });
+
+      document.body.appendChild(input);
+      input.click();
+    });
+  </script>
+
 </body>
 </html>
