@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Upload Media</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="plain">
+  <div class="card upload-card">
+    <h2>Upload Media</h2>
+    <p>Select a photo or video to share at Maria's party.</p>
+
+    <form id="uploadForm" enctype="multipart/form-data">
+      <label class="field">
+        <span>Choose file</span>
+        <input type="file" name="media" accept="image/*,video/*" required />
+      </label>
+
+      <button type="submit" class="big-btn small">Upload</button>
+    </form>
+
+    <p id="status" class="status"></p>
+  </div>
+  <script src="upload.js"></script>
+</body>
+</html>
