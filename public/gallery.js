@@ -1,65 +1,98 @@
 async function loadGallery() {
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "<p>Loading…</p>";
+
   try {
     const res = await fetch("/list");
     const json = await res.json();
 
-    if (!json.ok) throw new Error(json.error || "Failed to load");
+    if (!json.ok) {
+      grid.innerHTML = "<p>Could not load gallery.</p>";
+      return;
+    }
 
-    const grid = document.getElementById("grid");
     grid.innerHTML = "";
 
-    json.items.forEach((item) => {
-      const div = document.createElement("div");
-      div.className = "thumb";
-      div.dataset.path = item.path_display;
+    for (const item of json.items) {
+      const thumb = document.createElement("div");
+      thumb.className = "thumb";
+      thumb.dataset.path = item.path_display;
 
       const img = document.createElement("img");
-      img.src = `/temp-link?path=${encodeURIComponent(item.path_display)}`;
+      img.alt = item.name;
+      thumb.appendChild(img);
 
       const check = document.createElement("div");
       check.className = "checkmark";
       check.textContent = "✓";
+      thumb.appendChild(check);
 
-      div.appendChild(img);
-      div.appendChild(check);
-      grid.appendChild(div);
-
-      // ENABLE CLICK TO SELECT
-      div.addEventListener("click", () => {
-        div.classList.toggle("selected");
+      // Make each thumb clickable to select/deselect
+      thumb.addEventListener("click", () => {
+        thumb.classList.toggle("selected");
       });
-    });
+
+      grid.appendChild(thumb);
+
+      // Now fetch the actual image URL from /temp-link
+      try {
+        const linkRes = await fetch(
+          "/temp-link?path=" + encodeURIComponent(item.path_display)
+        );
+        const linkJson = await linkRes.json();
+        if (linkJson.ok && linkJson.link) {
+          img.src = linkJson.link;
+        } else {
+          console.error("No link for item", item, linkJson);
+        }
+      } catch (e) {
+        console.error("Error getting temp link", e);
+      }
+    }
   } catch (err) {
     console.error("GALLERY LOAD ERROR:", err);
-    document.getElementById("grid").innerHTML =
+    grid.innerHTML =
       "<p style='color:red;text-align:center;'>Error loading gallery.</p>";
   }
 }
 
-// DOWNLOAD SELECTED FILES
-document.getElementById("downloadSelected").addEventListener("click", async () => {
-  const selected = [...document.querySelectorAll(".thumb.selected")];
+// Download selected photos one by one
+document
+  .getElementById("downloadSelected")
+  .addEventListener("click", async () => {
+    const selected = Array.from(
+      document.querySelectorAll(".thumb.selected")
+    );
 
-  if (selected.length === 0) {
-    alert("Please select at least one photo.");
-    return;
-  }
+    if (selected.length === 0) {
+      alert("Please select at least one photo.");
+      return;
+    }
 
-  for (const thumb of selected) {
-    const path = thumb.dataset.path;
+    for (const thumb of selected) {
+      const path = thumb.dataset.path;
 
-    const res = await fetch(`/temp-link?path=${encodeURIComponent(path)}`);
-    const json = await res.json();
-    if (!json.ok) continue;
+      try {
+        const res = await fetch(
+          "/temp-link?path=" + encodeURIComponent(path)
+        );
+        const json = await res.json();
+        if (!json.ok || !json.link) {
+          console.error("No link for download", json);
+          continue;
+        }
 
-    const a = document.createElement("a");
-    a.href = json.link;
-    a.download = path.split("/").pop();
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  }
-});
+        const a = document.createElement("a");
+        a.href = json.link;
+        a.download = path.split("/").pop();
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } catch (e) {
+        console.error("Error downloading file", e);
+      }
+    }
+  });
 
-// INITIAL LOAD
+// Initial load
 loadGallery();
