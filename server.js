@@ -9,7 +9,14 @@ const app = express();
 const upload = multer({ dest: 'temp_uploads/' });
 
 // Configure Dropbox client
-const dbx = new Dropbox({ accessToken: process.env.DROPBOX_TOKEN, fetch });
+const dbx = new Dropbox({
+  accessToken: process.env.DROPBOX_ACCESS_TOKEN,
+  refreshToken: process.env.DROPBOX_REFRESH_TOKEN,
+  clientId: process.env.DROPBOX_APP_KEY,
+  clientSecret: process.env.DROPBOX_APP_SECRET,
+  fetch
+});
+
 
 const CHUNK_SIZE = 150 * 1024 * 1024; // 150MB
 
