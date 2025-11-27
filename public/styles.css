@@ -166,10 +166,10 @@ body.plain {
 }
 
 /* Selection highlight — your Option A */
-.thumb.selected {
+/* .thumb.selected {
   outline: 3px solid #ff82c4;
   outline-offset: 2px;
-}
+}*/
 
 .thumb .checkmark {
   position: absolute;
