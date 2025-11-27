@@ -147,6 +147,8 @@ app.post("/upload", upload.single("photo"), async (req, res) => {
 --------------------------------------------------- */
 app.get("/list", async (req, res) => {
   try {
+    const dbx = await getDropboxClient();  // <-- FIXED: create Dropbox client
+
     const folder = "/Maria's Birthday/Maria_Birthday/Uploads";
 
     const listRes = await dbx.filesListFolder({
@@ -154,7 +156,7 @@ app.get("/list", async (req, res) => {
       recursive: false,
     });
 
-    // Works for both old and new Dropbox SDK formats
+    // Works for old and new Dropbox SDK formats
     const entries =
       (listRes.result && listRes.result.entries) ||
       listRes.entries ||
@@ -168,6 +170,7 @@ app.get("/list", async (req, res) => {
     res.status(500).json({ ok: false, error: String(err) });
   }
 });
+
 
 /* ---------------------------------------------------
    GET TEMPORARY LINK FOR DOWNLOAD
