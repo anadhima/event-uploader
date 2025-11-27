@@ -10,29 +10,33 @@ async function loadGallery() {
       return;
     }
 
-    grid.innerHTML = ""; // clear existing
+    grid.innerHTML = ""; // clear items
 
     for (const item of json.items) {
-      // 1: Get temporary link for each file
-      const linkRes = await fetch(`/temp-link?path=${encodeURIComponent(item.path_lower)}`);
+      // Get temporary link for each file
+      const linkRes = await fetch(
+        "/temp-link?path=" + encodeURIComponent(item.path_lower)
+      );
       const linkJson = await linkRes.json();
 
-      if (!linkJson.ok) continue;
+      if (!linkJson.ok || !linkJson.link) continue;
 
+      // Create thumbnail
       const thumb = document.createElement("div");
       thumb.className = "thumb";
 
+      // Create image
       const img = document.createElement("img");
-      img.src = linkJson.link;   // <-- direct Dropbox temporary link
-      img.alt = "Uploaded photo";
+      img.src = linkJson.link;
+      img.alt = item.name;
 
       thumb.appendChild(img);
-
       grid.appendChild(thumb);
     }
   } catch (err) {
     console.error(err);
-    grid.innerHTML = "<p>Error loading gallery.</p>";
+    document.getElementById("grid").innerHTML =
+      "<p>Error loading gallery.</p>";
   }
 }
 
