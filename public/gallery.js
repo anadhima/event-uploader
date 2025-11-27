@@ -1,98 +1,131 @@
-async function loadGallery() {
-  const grid = document.getElementById("grid");
-  grid.innerHTML = "<p>Loading…</p>";
+/* --------------------------------------------------------
+   Load gallery list from server
+-------------------------------------------------------- */
 
+const grid = document.getElementById("grid");
+const loading = document.getElementById("loading");
+const downloadBtn = document.getElementById("downloadSelected");
+
+let selected = new Set(); // store selected paths
+
+async function loadGallery() {
   try {
     const res = await fetch("/list");
     const json = await res.json();
 
-    if (!json.ok) {
-      grid.innerHTML = "<p>Could not load gallery.</p>";
+    if (!json.ok) throw new Error(json.error || "Failed to load");
+
+    const items = json.items;
+
+    if (!items || items.length === 0) {
+      loading.textContent = "No photos uploaded yet.";
       return;
     }
 
-    grid.innerHTML = "";
+    loading.style.display = "none";
 
-    for (const item of json.items) {
-      const thumb = document.createElement("div");
-      thumb.className = "thumb";
-      thumb.dataset.path = item.path_display;
-
-      const img = document.createElement("img");
-      img.alt = item.name;
-      thumb.appendChild(img);
-
-      const check = document.createElement("div");
-      check.className = "checkmark";
-      check.textContent = "✓";
-      thumb.appendChild(check);
-
-      // Make each thumb clickable to select/deselect
-      thumb.addEventListener("click", () => {
-        thumb.classList.toggle("selected");
-      });
-
+    // Render thumbnails
+    for (const item of items) {
+      const thumb = await createThumb(item);
       grid.appendChild(thumb);
-
-      // Now fetch the actual image URL from /temp-link
-      try {
-        const linkRes = await fetch(
-          "/temp-link?path=" + encodeURIComponent(item.path_display)
-        );
-        const linkJson = await linkRes.json();
-        if (linkJson.ok && linkJson.link) {
-          img.src = linkJson.link;
-        } else {
-          console.error("No link for item", item, linkJson);
-        }
-      } catch (e) {
-        console.error("Error getting temp link", e);
-      }
     }
   } catch (err) {
-    console.error("GALLERY LOAD ERROR:", err);
-    grid.innerHTML =
-      "<p style='color:red;text-align:center;'>Error loading gallery.</p>";
+    console.error(err);
+    loading.textContent = "Error loading gallery.";
   }
 }
 
-// Download selected photos one by one
-document
-  .getElementById("downloadSelected")
-  .addEventListener("click", async () => {
-    const selected = Array.from(
-      document.querySelectorAll(".thumb.selected")
-    );
-
-    if (selected.length === 0) {
-      alert("Please select at least one photo.");
-      return;
-    }
-
-    for (const thumb of selected) {
-      const path = thumb.dataset.path;
-
-      try {
-        const res = await fetch(
-          "/temp-link?path=" + encodeURIComponent(path)
-        );
-        const json = await res.json();
-        if (!json.ok || !json.link) {
-          console.error("No link for download", json);
-          continue;
-        }
-
-        const a = document.createElement("a");
-        a.href = json.link;
-        a.download = path.split("/").pop();
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      } catch (e) {
-        console.error("Error downloading file", e);
-      }
-    }
-  });
-
-// Initial load
 loadGallery();
+
+/* --------------------------------------------------------
+   Create a thumbnail element
+-------------------------------------------------------- */
+async function createThumb(item) {
+  const div = document.createElement("div");
+  div.className = "thumb";
+  div.dataset.path = item.path_display;
+
+  const isVideo = /\.(mp4|mov|m4v|avi)$/i.test(item.name);
+
+  let img = document.createElement("img");
+
+  if (isVideo) {
+    // Use a placeholder icon for videos
+    img.src = "video-icon.png"; // OPTIONAL: add your own icon
+  } else {
+    // Fetch actual temporary link
+    const tmp = await getTempLink(item.path_display);
+
+    img.src = tmp;
+  }
+
+  const check = document.createElement("div");
+  check.className = "checkmark";
+  check.textContent = "✓";
+
+  div.appendChild(img);
+  div.appendChild(check);
+
+  div.addEventListener("click", () => toggleSelect(div));
+
+  return div;
+}
+
+/* --------------------------------------------------------
+   Get temporary Dropbox download/preview link
+-------------------------------------------------------- */
+async function getTempLink(path) {
+  const res = await fetch(`/temp-link?path=${encodeURIComponent(path)}`);
+  const json = await res.json();
+
+  if (!json.ok) {
+    console.error("Temp link error", json.error);
+    return "";
+  }
+
+  // Supports both formats:
+  return json.link || json.result?.link || "";
+}
+
+/* --------------------------------------------------------
+   Select / Unselect thumbnails
+-------------------------------------------------------- */
+function toggleSelect(div) {
+  const path = div.dataset.path;
+
+  if (selected.has(path)) {
+    selected.delete(path);
+    div.classList.remove("selected");
+  } else {
+    selected.add(path);
+    div.classList.add("selected");
+  }
+}
+
+/* --------------------------------------------------------
+   Download selected files
+-------------------------------------------------------- */
+downloadBtn.addEventListener("click", async () => {
+  if (selected.size === 0) return alert("No photos selected.");
+
+  downloadBtn.disabled = true;
+  downloadBtn.textContent = "Preparing…";
+
+  for (const path of selected) {
+    const link = await getTempLink(path);
+
+    // Create download
+    const a = document.createElement("a");
+    a.href = link;
+    a.download = "";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    // Delay for Safari
+    await new Promise((r) => setTimeout(r, 220));
+  }
+
+  downloadBtn.textContent = "⬇️ Download Selected";
+  downloadBtn.disabled = false;
+});
