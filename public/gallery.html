@@ -7,24 +7,28 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 
-<body class="plain">
+<body class="hero">
 
-  <!-- Back Button -->
-  <button onclick="window.location.href='index.html'" class="back-btn">← Back to Home</button>
+  <div class="hero-card gallery-card">
 
-  <h1 class="gallery-title">Maria’s Birthday Gallery</h1>
-  <p class="gallery-sub">Tap photos to select them. Download your favourites.</p>
-
-  <!-- Download Selected Button -->
-  <div class="gallery-actions">
-    <button id="downloadSelected" class="big-btn small">
-      ⬇️ Download Selected
+    <!-- Back Button -->
+    <button onclick="window.location.href='index.html'" class="back-btn">
+      ← Back to Home
     </button>
-  </div>
 
-  <!-- Scrollable gallery -->
-  <div class="gallery-wrapper">
-    <div id="grid" class="grid"></div>
+    <h1 class="gallery-title">Maria’s Birthday Gallery</h1>
+    <p class="gallery-sub">Tap photos to select them. Download your favourites.</p>
+
+    <!-- Download Selected Button -->
+    <button id="downloadSelected" class="big-btn small">
+      <span>⬇️</span> Download Selected
+    </button>
+
+    <!-- Scrollable photo area -->
+    <div class="gallery-scroll">
+      <div id="grid" class="grid"></div>
+    </div>
+
   </div>
 
   <script src="gallery.js"></script>
