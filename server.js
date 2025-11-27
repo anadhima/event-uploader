@@ -146,7 +146,7 @@ app.post("/upload", upload.single("photo"), async (req, res) => {
 app.get("/list", async (req, res) => {
   try {
     const dbx = await getDropboxClient();
-    const folder = "/Maria_Birthday/Uploads";
+    const folder = "/Maria's Birthday/Maria_Birthday/Uploads";
 
     const response = await dbx.filesListFolder({
       path: folder,
