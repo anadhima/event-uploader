@@ -122,6 +122,7 @@ app.post("/upload", upload.single("photo"), async (req, res) => {
 
 
 
+
     await uploadToDropbox(req.file.path, dropboxPath);
 
     // clean temp file
@@ -152,6 +153,7 @@ app.get("/list", async (req, res) => {
 
     // Your Dropbox folder path
     const folder = "/Maria's Birthday/Maria_Birthday/Uploads";
+
 
     const listRes = await dbx.filesListFolder({
       path: folder,
