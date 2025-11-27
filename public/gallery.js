@@ -1,85 +1,39 @@
-const selectedPaths = new Set();
-
 async function loadGallery() {
-  const grid = document.getElementById('grid');
-  grid.innerHTML = 'Loading...';
+  const grid = document.getElementById("grid");
 
   try {
-    const res = await fetch('/list');
+    const res = await fetch("/list");
     const json = await res.json();
+
     if (!json.ok) {
-      grid.textContent = 'Could not load gallery.';
+      grid.innerHTML = "<p>Could not load gallery.</p>";
       return;
     }
 
-    grid.innerHTML = '';
-    const items = json.items || [];
-    for (const item of items) {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'thumb';
-      wrapper.dataset.path = item.path_lower;
+    grid.innerHTML = ""; // clear existing
 
-      const img = document.createElement('img');
-      img.alt = item.name;
+    for (const item of json.items) {
+      // 1: Get temporary link for each file
+      const linkRes = await fetch(`/temp-link?path=${encodeURIComponent(item.path_lower)}`);
+      const linkJson = await linkRes.json();
 
-      const mark = document.createElement('div');
-      mark.className = 'checkmark';
-      mark.textContent = '✓';
+      if (!linkJson.ok) continue;
 
-      wrapper.appendChild(img);
-      wrapper.appendChild(mark);
-      grid.appendChild(wrapper);
+      const thumb = document.createElement("div");
+      thumb.className = "thumb";
 
-      // toggle select on click
-      wrapper.addEventListener('click', () => {
-        const path = wrapper.dataset.path;
-        if (selectedPaths.has(path)) {
-          selectedPaths.delete(path);
-          wrapper.classList.remove('selected');
-        } else {
-          selectedPaths.add(path);
-          wrapper.classList.add('selected');
-        }
-      });
+      const img = document.createElement("img");
+      img.src = linkJson.link;   // <-- direct Dropbox temporary link
+      img.alt = "Uploaded photo";
 
-      // fetch preview link
-      try {
-        const linkRes = await fetch('/temp-link?path=' + encodeURIComponent(item.path_lower));
-        const linkJson = await linkRes.json();
-        if (linkJson.ok) {
-          img.src = linkJson.link;
-        }
-      } catch (e) {
-        console.error(e);
-      }
+      thumb.appendChild(img);
+
+      grid.appendChild(thumb);
     }
   } catch (err) {
     console.error(err);
-    grid.textContent = 'Error loading gallery.';
+    grid.innerHTML = "<p>Error loading gallery.</p>";
   }
 }
 
-async function downloadSelected() {
-  if (!selectedPaths.size) {
-    alert('Select at least one photo first.');
-    return;
-  }
-
-  for (const path of selectedPaths) {
-    try {
-      const res = await fetch('/temp-link?path=' + encodeURIComponent(path));
-      const json = await res.json();
-      if (json.ok) {
-        window.open(json.link, '_blank');
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  loadGallery();
-  const btn = document.getElementById('downloadSelected');
-  btn.addEventListener('click', downloadSelected);
-});
+loadGallery();
