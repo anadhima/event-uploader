@@ -121,6 +121,7 @@ app.post("/upload", upload.single("photo"), async (req, res) => {
     const dropboxPath = `/Maria's Birthday/Maria_Birthday/Uploads/${timestamp}_${safeName}`;
 
 
+
     await uploadToDropbox(req.file.path, dropboxPath);
 
     // clean temp file
@@ -146,17 +147,22 @@ app.post("/upload", upload.single("photo"), async (req, res) => {
 --------------------------------------------------- */
 app.get("/list", async (req, res) => {
   try {
-    const dbx = await getDropboxClient();
     const folder = "/Maria's Birthday/Maria_Birthday/Uploads";
 
-    const response = await dbx.filesListFolder({
+    const listRes = await dbx.filesListFolder({
       path: folder,
       recursive: false,
     });
 
-    const files = response.entries.filter((e) => e[".tag"] === "file");
+    // Works for both old and new Dropbox SDK formats
+    const entries =
+      (listRes.result && listRes.result.entries) ||
+      listRes.entries ||
+      [];
 
-    res.json({ ok: true, items: files });
+    const items = entries.filter((e) => e[".tag"] === "file");
+
+    res.json({ ok: true, items });
   } catch (err) {
     console.error("LIST ERROR:", err);
     res.status(500).json({ ok: false, error: String(err) });
