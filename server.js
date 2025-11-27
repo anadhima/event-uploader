@@ -8,14 +8,32 @@ const fetch = require('node-fetch');
 const app = express();
 const upload = multer({ dest: 'temp_uploads/' });
 
-// Configure Dropbox client
-const dbx = new Dropbox({
-  accessToken: process.env.DROPBOX_ACCESS_TOKEN,
-  refreshToken: process.env.DROPBOX_REFRESH_TOKEN,
-  clientId: process.env.DROPBOX_APP_KEY,
-  clientSecret: process.env.DROPBOX_APP_SECRET,
-  fetch
-});
+// ---- DROPBOX AUTH USING REFRESH TOKEN ----
+async function getDropboxClient() {
+  // Step 1: refresh the short-lived access token using OAuth2
+  const params = new URLSearchParams();
+  params.append("grant_type", "refresh_token");
+  params.append("refresh_token", process.env.DROPBOX_REFRESH_TOKEN);
+  params.append("client_id", process.env.DROPBOX_APP_KEY);
+  params.append("client_secret", process.env.DROPBOX_APP_SECRET);
+
+  const tokenRes = await fetch("https://api.dropbox.com/oauth2/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: params
+  });
+
+  const tokenJson = await tokenRes.json();
+
+  if (!tokenJson.access_token) {
+    console.error("Failed to refresh token:", tokenJson);
+    throw new Error("Dropbox authentication failed");
+  }
+
+  // Step 2: return a Dropbox client with a fresh access token
+  return new Dropbox({ accessToken: tokenJson.access_token, fetch });
+}
+
 
 
 const CHUNK_SIZE = 150 * 1024 * 1024; // 150MB
