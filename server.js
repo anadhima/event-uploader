@@ -118,7 +118,8 @@ app.post("/upload", upload.single("photo"), async (req, res) => {
 
     const timestamp = Date.now();
     const safeName = req.file.originalname.replace(/\s+/g, "_");
-    const dropboxPath = `/Maria_Birthday/Uploads/${timestamp}_${safeName}`;
+    const dropboxPath = `/Maria's Birthday/Maria_Birthday/Uploads/${timestamp}_${safeName}`;
+
 
     await uploadToDropbox(req.file.path, dropboxPath);
 
