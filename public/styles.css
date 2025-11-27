@@ -177,7 +177,7 @@ body.plain {
   opacity: 1;
 }
 
- /* .thumb .checkmark {
+  .thumb .checkmark {
   position: absolute;
   top: 6px;
   right: 6px;
@@ -197,7 +197,7 @@ body.plain {
 
 .thumb.selected .checkmark {
   opacity: 1;
-} */
+} 
 
 /* ---------------------------------------------------
    MOBILE ADJUSTMENTS
