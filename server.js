@@ -118,7 +118,7 @@ app.post("/upload", upload.single("photo"), async (req, res) => {
 
     const timestamp = Date.now();
     const safeName = req.file.originalname.replace(/\s+/g, "_");
-    const dropboxPath = `/Maria's Birthday/Maria_Birthday/Uploads/${timestamp}_${safeName}`;
+    const dropboxPath = `/Marias Birthday/Maria_Birthday/Uploads/${timestamp}_${safeName}`;
 
 
 
@@ -152,7 +152,7 @@ app.get("/list", async (req, res) => {
     const dbx = await getDropboxClient();
 
     // Your Dropbox folder path
-    const folder = "/Maria's Birthday/Maria_Birthday/Uploads";
+    const folder = "/Marias Birthday/Maria_Birthday/Uploads";
 
 
     const listRes = await dbx.filesListFolder({
