@@ -187,7 +187,8 @@ app.get("/temp-link", async (req, res) => {
     const dbx = await getDropboxClient();
     const linkResp = await dbx.filesGetTemporaryLink({ path });
 
-    res.json({ ok: true, link: linkResp.link });
+    res.json({ ok: true, link: linkResp.result.link });
+
   } catch (err) {
     console.error("TEMP LINK ERROR:", err);
     res.status(500).json({ ok: false, error: String(err) });
