@@ -147,8 +147,10 @@ app.post("/upload", upload.single("photo"), async (req, res) => {
 --------------------------------------------------- */
 app.get("/list", async (req, res) => {
   try {
-    const dbx = await getDropboxClient();  // <-- FIXED: create Dropbox client
+    // MUST get a fresh authenticated client
+    const dbx = await getDropboxClient();
 
+    // Your Dropbox folder path
     const folder = "/Maria's Birthday/Maria_Birthday/Uploads";
 
     const listRes = await dbx.filesListFolder({
@@ -156,7 +158,7 @@ app.get("/list", async (req, res) => {
       recursive: false,
     });
 
-    // Works for old and new Dropbox SDK formats
+    // Normalize results (SDK v10 vs v11)
     const entries =
       (listRes.result && listRes.result.entries) ||
       listRes.entries ||
