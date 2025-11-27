@@ -1,43 +1,65 @@
 async function loadGallery() {
-  const grid = document.getElementById("grid");
-
   try {
     const res = await fetch("/list");
     const json = await res.json();
 
-    if (!json.ok) {
-      grid.innerHTML = "<p>Could not load gallery.</p>";
-      return;
-    }
+    if (!json.ok) throw new Error(json.error || "Failed to load");
 
-    grid.innerHTML = ""; // clear items
+    const grid = document.getElementById("grid");
+    grid.innerHTML = "";
 
-    for (const item of json.items) {
-      // Get temporary link for each file
-      const linkRes = await fetch(
-        "/temp-link?path=" + encodeURIComponent(item.path_lower)
-      );
-      const linkJson = await linkRes.json();
+    json.items.forEach((item) => {
+      const div = document.createElement("div");
+      div.className = "thumb";
+      div.dataset.path = item.path_display;
 
-      if (!linkJson.ok || !linkJson.link) continue;
-
-      // Create thumbnail
-      const thumb = document.createElement("div");
-      thumb.className = "thumb";
-
-      // Create image
       const img = document.createElement("img");
-      img.src = linkJson.link;
-      img.alt = item.name;
+      img.src = `/temp-link?path=${encodeURIComponent(item.path_display)}`;
 
-      thumb.appendChild(img);
-      grid.appendChild(thumb);
-    }
+      const check = document.createElement("div");
+      check.className = "checkmark";
+      check.textContent = "✓";
+
+      div.appendChild(img);
+      div.appendChild(check);
+      grid.appendChild(div);
+
+      // ENABLE CLICK TO SELECT
+      div.addEventListener("click", () => {
+        div.classList.toggle("selected");
+      });
+    });
   } catch (err) {
-    console.error(err);
+    console.error("GALLERY LOAD ERROR:", err);
     document.getElementById("grid").innerHTML =
-      "<p>Error loading gallery.</p>";
+      "<p style='color:red;text-align:center;'>Error loading gallery.</p>";
   }
 }
 
+// DOWNLOAD SELECTED FILES
+document.getElementById("downloadSelected").addEventListener("click", async () => {
+  const selected = [...document.querySelectorAll(".thumb.selected")];
+
+  if (selected.length === 0) {
+    alert("Please select at least one photo.");
+    return;
+  }
+
+  for (const thumb of selected) {
+    const path = thumb.dataset.path;
+
+    const res = await fetch(`/temp-link?path=${encodeURIComponent(path)}`);
+    const json = await res.json();
+    if (!json.ok) continue;
+
+    const a = document.createElement("a");
+    a.href = json.link;
+    a.download = path.split("/").pop();
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+});
+
+// INITIAL LOAD
 loadGallery();
