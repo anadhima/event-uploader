@@ -1,19 +1,18 @@
-require('dotenv').config();
-const express = require('express');
-const multer = require('multer');
-const fs = require('fs');
-const fetch = require('node-fetch');
-const { Dropbox } = require('dropbox');
+require("dotenv").config();
+const express = require("express");
+const multer = require("multer");
+const fs = require("fs");
+const fetch = require("node-fetch");
+const { Dropbox } = require("dropbox");
 
 const app = express();
 const upload = multer({ dest: "temp_uploads/" });
 
-// 150MB chunk size for videos
 const CHUNK_SIZE = 150 * 1024 * 1024;
 
-/* ---------------------------------------------------
-   REFRESH TOKEN → SHORT-LIVED ACCESS TOKEN FUNCTION
---------------------------------------------------- */
+/* --------------------------------------------
+   REFRESH TOKEN → SHORT-LIVED ACCESS TOKEN
+-------------------------------------------- */
 async function getDropboxClient() {
   const params = new URLSearchParams();
   params.append("grant_type", "refresh_token");
@@ -31,22 +30,21 @@ async function getDropboxClient() {
 
   if (!tokenJson.access_token) {
     console.error("Failed to refresh access token:", tokenJson);
-    throw new Error("Dropbox authentication failed");
+    throw new Error("Dropbox authentication failed.");
   }
 
   return new Dropbox({ accessToken: tokenJson.access_token, fetch });
 }
 
-/* ---------------------------------------------------
-   FILE CHUNK GENERATOR FOR LARGE FILES
---------------------------------------------------- */
+/* --------------------------------------------
+   STREAM CHUNK GENERATOR
+-------------------------------------------- */
 async function* streamChunks(filePath, chunkSize) {
   const stream = fs.createReadStream(filePath);
   let buffer = Buffer.alloc(0);
 
   for await (const chunk of stream) {
     buffer = Buffer.concat([buffer, chunk]);
-
     while (buffer.length >= chunkSize) {
       yield buffer.slice(0, chunkSize);
       buffer = buffer.slice(chunkSize);
@@ -56,25 +54,23 @@ async function* streamChunks(filePath, chunkSize) {
   if (buffer.length > 0) yield buffer;
 }
 
-/* ---------------------------------------------------
-   UPLOAD LARGE / SMALL FILES TO DROPBOX
---------------------------------------------------- */
+/* --------------------------------------------
+   UPLOAD TO DROPBOX
+-------------------------------------------- */
 async function uploadToDropbox(localPath, dropboxPath) {
   const stats = fs.statSync(localPath);
   const size = stats.size;
   const dbx = await getDropboxClient();
 
-  // Small files (<150MB)
   if (size <= CHUNK_SIZE) {
     const contents = fs.readFileSync(localPath);
     return dbx.filesUpload({
       path: dropboxPath,
       contents,
-      mode: { '.tag': 'add' },
+      mode: { ".tag": "add" },
     });
   }
 
-  // Chunked upload for larger videos
   let sessionId = null;
   let offset = 0;
 
@@ -84,7 +80,6 @@ async function uploadToDropbox(localPath, dropboxPath) {
         close: false,
         contents: chunk,
       });
-
       sessionId = start.session_id;
     } else if (offset + chunk.length < size) {
       await dbx.filesUploadSessionAppendV2({
@@ -97,70 +92,54 @@ async function uploadToDropbox(localPath, dropboxPath) {
         cursor: { session_id: sessionId, offset },
         commit: {
           path: dropboxPath,
-          mode: { '.tag': 'add' },
+          mode: { ".tag": "add" },
           autorename: true,
         },
         contents: chunk,
       });
     }
-
     offset += chunk.length;
   }
 }
 
-/* ---------------------------------------------------
+/* --------------------------------------------
    UPLOAD ENDPOINT
---------------------------------------------------- */
+-------------------------------------------- */
 app.post("/upload", upload.single("photo"), async (req, res) => {
   try {
-    if (!req.file)
-      return res.status(400).json({ ok: false, error: "No file provided" });
+    if (!req.file) return res.status(400).json({ ok: false, error: "No file" });
 
     const timestamp = Date.now();
     const safeName = req.file.originalname.replace(/\s+/g, "_");
+
+    // Your actual Dropbox path
     const dropboxPath = `/Marias Birthday/Maria_Birthday/Uploads/${timestamp}_${safeName}`;
 
-
-
-
     await uploadToDropbox(req.file.path, dropboxPath);
-
-    // clean temp file
     fs.unlinkSync(req.file.path);
 
     res.json({ ok: true });
   } catch (err) {
     console.error("UPLOAD ERROR:", err);
-
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
-
-    res.status(500).json({
-      ok: false,
-      error: String(err),
-    });
+    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    res.status(500).json({ ok: false, error: String(err) });
   }
 });
 
-/* ---------------------------------------------------
-   LIST FILES IN GALLERY
---------------------------------------------------- */
-app.get("/temp-link", async (req, res) => {
+/* --------------------------------------------
+   LIST FILES (for GALLERY)
+-------------------------------------------- */
+app.get("/list", async (req, res) => {
   try {
-    // MUST get a fresh authenticated client
     const dbx = await getDropboxClient();
 
-    // Your Dropbox folder path
     const folder = "/Marias Birthday/Maria_Birthday/Uploads";
-
 
     const listRes = await dbx.filesListFolder({
       path: folder,
       recursive: false,
     });
 
-    // Normalize results (SDK v10 vs v11)
     const entries =
       (listRes.result && listRes.result.entries) ||
       listRes.entries ||
@@ -175,36 +154,34 @@ app.get("/temp-link", async (req, res) => {
   }
 });
 
-
-/* ---------------------------------------------------
-   GET TEMPORARY LINK FOR DOWNLOAD
---------------------------------------------------- */
+/* --------------------------------------------
+   TEMP LINK (image preview)
+-------------------------------------------- */
 app.get("/temp-link", async (req, res) => {
   try {
     const path = req.query.path;
-    if (!path) return res.status(400).json({ ok: false, error: "Missing path" });
+    if (!path) return res.json({ ok: false, error: "Missing path" });
 
     const dbx = await getDropboxClient();
-    const linkResp = await dbx.filesGetTemporaryLink({ path });
+    const linkRes = await dbx.filesGetTemporaryLink({ path });
 
-    res.json({ ok: true, link: linkResp.result.link });
+    const link =
+      (linkRes.result && linkRes.result.link) || linkRes.link;
 
+    res.json({ ok: true, link });
   } catch (err) {
     console.error("TEMP LINK ERROR:", err);
     res.status(500).json({ ok: false, error: String(err) });
   }
 });
 
-/* ---------------------------------------------------
-   STATIC FRONT-END
---------------------------------------------------- */
+/* --------------------------------------------
+   STATIC FILES
+-------------------------------------------- */
 app.use(express.static("public"));
 
-/* ---------------------------------------------------
-   SERVER START
---------------------------------------------------- */
+/* --------------------------------------------
+   START SERVER
+-------------------------------------------- */
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log("Listening on port", PORT);
-});
-
+app.listen(PORT, () => console.log("Listening on port", PORT));
