@@ -146,7 +146,7 @@ app.post("/upload", upload.single("photo"), async (req, res) => {
 /* ---------------------------------------------------
    LIST FILES IN GALLERY
 --------------------------------------------------- */
-app.get("/list", async (req, res) => {
+app.get("/temp-link", async (req, res) => {
   try {
     // MUST get a fresh authenticated client
     const dbx = await getDropboxClient();
