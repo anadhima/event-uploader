@@ -10,41 +10,44 @@
 <body class="hero">
 
   <div class="hero-card">
-
     <!-- Back -->
-    <button onclick="window.location.href='index.html'" class="back-btn">← Back to Home</button>
+    <button onclick="window.location.href='index.html'" class="back-btn">
+      ← Back to Home
+    </button>
 
     <h1 class="gallery-title">Maria’s Birthday Gallery</h1>
     <p class="gallery-sub">Tap to select, tap ⤢ to view full screen.</p>
+
+    <!-- Status text used by JS (this was missing before!) -->
+    <p id="loading" class="status"></p>
 
     <!-- Download Selected -->
     <button id="downloadSelected" class="big-btn small">
       <span>⬇️</span> Download Selected
     </button>
 
-    <!-- Scrollable Gallery -->
+    <!-- Scrollable gallery container -->
     <div class="gallery-wrapper">
       <div id="grid" class="grid"></div>
     </div>
-
   </div>
 
-  <!-- FULLSCREEN VIEWER -->
-  <div id="viewer" class="viewer-overlay">
+  <!-- FULL-SCREEN VIEWER OVERLAY -->
+  <div id="viewer" class="viewer-overlay" hidden>
     <div class="viewer-content">
-
       <button id="viewerClose" class="viewer-close">×</button>
-
-      <img id="viewerImg" class="viewer-img" src="" alt="">
+      <img id="viewerImg" class="viewer-img" src="" alt="" />
 
       <button id="viewerPrev" class="viewer-arrow viewer-prev">‹</button>
       <button id="viewerNext" class="viewer-arrow viewer-next">›</button>
 
-      <button id="viewerDownload" class="viewer-download">⬇️ Save</button>
-
+      <button id="viewerDownload" class="viewer-download">
+        ⬇️ Save
+      </button>
     </div>
   </div>
 
+  <!-- ZIP + download libs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <script src="gallery.js"></script>
