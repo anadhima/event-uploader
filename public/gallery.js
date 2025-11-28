@@ -190,23 +190,47 @@ viewerDownload.addEventListener("click", async () => {
   }
 });
 
-/* -----------------------------
-   ZIP download of selected
------------------------------ */
-
 downloadBtn.addEventListener("click", async () => {
-  if (selected.size === 0) {
+  const selectedArray = Array.from(selected);
+
+  // No photos selected
+  if (selectedArray.length === 0) {
     alert("Please select at least one photo.");
     return;
   }
 
+  // EXACTLY ONE selected -> download directly (NO zip)
+  if (selectedArray.length === 1) {
+    try {
+      const path = selectedArray[0];
+      const item = items.find(it => it.path_display === path);
+
+      const link = await getTempLink(path);
+
+      const a = document.createElement("a");
+      a.href = link;
+      a.download = item.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      return;
+    } catch (err) {
+      console.error("Single download error:", err);
+      alert("Could not download the image.");
+      return;
+    }
+  }
+
+  // MULTIPLE selected → ZIP
   downloadBtn.disabled = true;
   downloadBtn.textContent = "Preparing ZIP…";
 
   try {
     const zip = new JSZip();
     let i = 0;
-    for (const path of selected) {
+
+    for (const path of selectedArray) {
       i++;
       const item = items.find((it) => it.path_display === path);
       const filename = item ? item.name : `photo_${i}.jpg`;
@@ -217,8 +241,8 @@ downloadBtn.addEventListener("click", async () => {
 
       zip.file(filename, blob);
 
-      // small delay to keep Safari happy
-      await new Promise((r) => setTimeout(r, 150));
+      // small delay to avoid iPhone Safari freezing
+      await new Promise((r) => setTimeout(r, 120));
     }
 
     const zipBlob = await zip.generateAsync({ type: "blob" });
@@ -231,6 +255,7 @@ downloadBtn.addEventListener("click", async () => {
     downloadBtn.textContent = "⬇️ Download Selected";
   }
 });
+
 
 /* -----------------------------
    Init
