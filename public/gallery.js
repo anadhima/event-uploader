@@ -1,95 +1,126 @@
-/* --------------------------------------------------------
-   Load gallery list from server
--------------------------------------------------------- */
-
 const grid = document.getElementById("grid");
 const loading = document.getElementById("loading");
 const downloadBtn = document.getElementById("downloadSelected");
 
-let selected = new Set(); // store selected paths
+const viewer = document.getElementById("viewer");
+const viewerImg = document.getElementById("viewerImg");
+const viewerClose = document.getElementById("viewerClose");
+const viewerPrev = document.getElementById("viewerPrev");
+const viewerNext = document.getElementById("viewerNext");
+const viewerDownload = document.getElementById("viewerDownload");
 
-async function loadGallery() {
-  try {
-    const res = await fetch("/list");
-    const json = await res.json();
+let items = [];              // Dropbox items from /list
+let selected = new Set();    // paths selected for ZIP
+let currentIndex = null;     // index for full-screen viewer
 
-    if (!json.ok) throw new Error(json.error || "Failed to load");
+/* -----------------------------
+   Helpers
+----------------------------- */
 
-    const items = json.items;
-
-    if (!items || items.length === 0) {
-      loading.textContent = "No photos uploaded yet.";
-      return;
-    }
-
-    loading.style.display = "none";
-
-    // Render thumbnails
-    for (const item of items) {
-      const thumb = await createThumb(item);
-      grid.appendChild(thumb);
-    }
-  } catch (err) {
-    console.error(err);
-    loading.textContent = "Error loading gallery.";
+function showSkeletons(count) {
+  grid.innerHTML = "";
+  for (let i = 0; i < count; i++) {
+    const sk = document.createElement("div");
+    sk.className = "thumb skeleton";
+    grid.appendChild(sk);
   }
 }
 
-loadGallery();
+async function getTempLink(path) {
+  const res = await fetch(`/temp-link?path=${encodeURIComponent(path)}`);
+  const json = await res.json();
+  if (!json.ok) throw new Error(json.error || "Temp link failed");
+  return json.link || (json.result && json.result.link) || "";
+}
 
-/* --------------------------------------------------------
-   Create a thumbnail element
--------------------------------------------------------- */
-async function createThumb(item) {
+/* -----------------------------
+   Load gallery
+----------------------------- */
+
+async function loadGallery() {
+  try {
+    showSkeletons(9);
+    const res = await fetch("/list");
+    const json = await res.json();
+
+    if (!json.ok || !json.items || !json.items.length) {
+      loading.textContent = "No photos uploaded yet.";
+      grid.innerHTML = "";
+      return;
+    }
+
+    items = json.items;
+    loading.style.display = "none";
+    grid.innerHTML = "";
+
+    // Build thumbs
+    items.forEach((item, index) => {
+      const thumb = createThumb(item, index);
+      grid.appendChild(thumb);
+      // load image asynchronously
+      loadThumbImage(thumb, item);
+    });
+  } catch (err) {
+    console.error("GALLERY LOAD ERROR:", err);
+    loading.textContent = "Error loading gallery.";
+    grid.innerHTML = "";
+  }
+}
+
+function createThumb(item, index) {
   const div = document.createElement("div");
   div.className = "thumb";
   div.dataset.path = item.path_display;
+  div.dataset.index = index;
 
-  const isVideo = /\.(mp4|mov|m4v|avi)$/i.test(item.name);
+  const img = document.createElement("img");
+  img.alt = item.name;
+  img.className = "thumb-img";
+  div.appendChild(img);
 
-  let img = document.createElement("img");
-
-  if (isVideo) {
-    // Use a placeholder icon for videos
-    img.src = "video-icon.png"; // OPTIONAL: add your own icon
-  } else {
-    // Fetch actual temporary link
-    const tmp = await getTempLink(item.path_display);
-
-    img.src = tmp;
-  }
-
+  // selection check
   const check = document.createElement("div");
   check.className = "checkmark";
   check.textContent = "✓";
-
-  div.appendChild(img);
   div.appendChild(check);
 
-  div.addEventListener("click", () => toggleSelect(div));
+  // view full screen icon
+  const viewIcon = document.createElement("button");
+  viewIcon.className = "view-icon";
+  viewIcon.type = "button";
+  viewIcon.textContent = "⤢";
+  div.appendChild(viewIcon);
+
+  // click ✓ area (whole thumb) to toggle selection
+  div.addEventListener("click", (e) => {
+    // if clicked on view icon, ignore (handled separately)
+    if (e.target === viewIcon) return;
+    toggleSelect(div);
+  });
+
+  // click ⤢ to open viewer
+  viewIcon.addEventListener("click", (e) => {
+    e.stopPropagation();
+    openViewer(index);
+  });
 
   return div;
 }
 
-/* --------------------------------------------------------
-   Get temporary Dropbox download/preview link
--------------------------------------------------------- */
-async function getTempLink(path) {
-  const res = await fetch(`/temp-link?path=${encodeURIComponent(path)}`);
-  const json = await res.json();
-
-  if (!json.ok) {
-    console.error("Temp link error", json.error);
-    return "";
+async function loadThumbImage(thumb, item) {
+  const img = thumb.querySelector("img");
+  try {
+    const link = await getTempLink(item.path_display);
+    img.src = link;
+  } catch (err) {
+    console.error("Thumb image error:", err);
   }
-
-  // Supports both formats:
-  return json.link || json.result?.link || "";
 }
 
-/* --------------------------------------------------------
-   Select / Unselect thumbnails
--------------------------------------------------------- */
+/* -----------------------------
+   Selection
+----------------------------- */
+
 function toggleSelect(div) {
   const path = div.dataset.path;
 
@@ -102,30 +133,106 @@ function toggleSelect(div) {
   }
 }
 
-/* --------------------------------------------------------
-   Download selected files
--------------------------------------------------------- */
-downloadBtn.addEventListener("click", async () => {
-  if (selected.size === 0) return alert("No photos selected.");
+/* -----------------------------
+   Full-screen viewer
+----------------------------- */
 
-  downloadBtn.disabled = true;
-  downloadBtn.textContent = "Preparing…";
+async function openViewer(index) {
+  currentIndex = index;
+  const item = items[index];
+  if (!item) return;
 
-  for (const path of selected) {
-    const link = await getTempLink(path);
+  try {
+    const link = await getTempLink(item.path_display);
+    viewerImg.src = link;
+    viewer.classList.add("open");
+    viewer.removeAttribute("hidden");
+  } catch (err) {
+    console.error("Viewer error:", err);
+  }
+}
 
-    // Create download
+function closeViewer() {
+  viewer.classList.remove("open");
+  viewer.setAttribute("hidden", "true");
+  viewerImg.src = "";
+}
+
+async function showViewerOffset(offset) {
+  if (currentIndex === null) return;
+  let nextIndex = currentIndex + offset;
+  if (nextIndex < 0) nextIndex = items.length - 1;
+  if (nextIndex >= items.length) nextIndex = 0;
+  await openViewer(nextIndex);
+}
+
+viewerClose.addEventListener("click", closeViewer);
+viewerPrev.addEventListener("click", () => showViewerOffset(-1));
+viewerNext.addEventListener("click", () => showViewerOffset(1));
+
+viewer.addEventListener("click", (e) => {
+  if (e.target === viewer) closeViewer();
+});
+
+viewerDownload.addEventListener("click", async () => {
+  if (currentIndex === null) return;
+  const item = items[currentIndex];
+  try {
+    const link = await getTempLink(item.path_display);
     const a = document.createElement("a");
     a.href = link;
-    a.download = "";
+    a.download = item.name;
     document.body.appendChild(a);
     a.click();
     a.remove();
+  } catch (err) {
+    console.error("Viewer download error:", err);
+  }
+});
 
-    // Delay for Safari
-    await new Promise((r) => setTimeout(r, 220));
+/* -----------------------------
+   ZIP download of selected
+----------------------------- */
+
+downloadBtn.addEventListener("click", async () => {
+  if (selected.size === 0) {
+    alert("Please select at least one photo.");
+    return;
   }
 
-  downloadBtn.textContent = "⬇️ Download Selected";
-  downloadBtn.disabled = false;
+  downloadBtn.disabled = true;
+  downloadBtn.textContent = "Preparing ZIP…";
+
+  try {
+    const zip = new JSZip();
+    let i = 0;
+    for (const path of selected) {
+      i++;
+      const item = items.find((it) => it.path_display === path);
+      const filename = item ? item.name : `photo_${i}.jpg`;
+
+      const link = await getTempLink(path);
+      const fileRes = await fetch(link);
+      const blob = await fileRes.blob();
+
+      zip.file(filename, blob);
+
+      // small delay to keep Safari happy
+      await new Promise((r) => setTimeout(r, 150));
+    }
+
+    const zipBlob = await zip.generateAsync({ type: "blob" });
+    saveAs(zipBlob, "Marias-Birthday-Photos.zip");
+  } catch (err) {
+    console.error("ZIP download error:", err);
+    alert("There was a problem preparing your download.");
+  } finally {
+    downloadBtn.disabled = false;
+    downloadBtn.textContent = "⬇️ Download Selected";
+  }
 });
+
+/* -----------------------------
+   Init
+----------------------------- */
+loadGallery();
