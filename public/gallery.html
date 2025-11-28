@@ -5,51 +5,48 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Maria's Birthday Gallery</title>
   <link rel="stylesheet" href="styles.css" />
-  <!-- ZIP + file saving libs -->
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 </head>
 
-<body class="plain">
+<body class="hero">
 
-  <div class="gallery-card">
+  <div class="hero-card">
 
-    <!-- Back Button -->
-    <button onclick="window.location.href='index.html'" class="back-btn">
-      ← Back to Home
-    </button>
+    <!-- Back -->
+    <button onclick="window.location.href='index.html'" class="back-btn">← Back to Home</button>
 
     <h1 class="gallery-title">Maria’s Birthday Gallery</h1>
-    <p class="gallery-sub">Tap ✓ to select, tap ⤢ to view full screen.</p>
+    <p class="gallery-sub">Tap to select, tap ⤢ to view full screen.</p>
 
     <!-- Download Selected -->
     <button id="downloadSelected" class="big-btn small">
       <span>⬇️</span> Download Selected
     </button>
 
-    <!-- Loading text -->
-    <p id="loading" style="margin-top:10px; font-size:14px; color:#555;">
-      Loading photos…
-    </p>
-
-    <!-- Scrollable Gallery Container -->
+    <!-- Scrollable Gallery -->
     <div class="gallery-wrapper">
       <div id="grid" class="grid"></div>
     </div>
 
   </div>
 
-  <!-- Full-screen viewer (Instagram style) -->
-  <div id="viewer" class="viewer-overlay" hidden>
+  <!-- FULLSCREEN VIEWER -->
+  <div id="viewer" class="viewer-overlay">
     <div class="viewer-content">
-      <button id="viewerClose" class="viewer-close">✕</button>
+
+      <button id="viewerClose" class="viewer-close">×</button>
+
+      <img id="viewerImg" class="viewer-img" src="" alt="">
+
       <button id="viewerPrev" class="viewer-arrow viewer-prev">‹</button>
-      <img id="viewerImg" class="viewer-img" src="" alt="Photo" />
       <button id="viewerNext" class="viewer-arrow viewer-next">›</button>
-      <button id="viewerDownload" class="viewer-download">⬇︎ Download</button>
+
+      <button id="viewerDownload" class="viewer-download">⬇️ Save</button>
+
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <script src="gallery.js"></script>
 </body>
 </html>
