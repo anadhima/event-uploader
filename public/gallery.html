@@ -2,9 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Maria's Birthday Gallery</title>
   <link rel="stylesheet" href="styles.css" />
+  <!-- ZIP + file saving libs -->
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 </head>
 
 <body class="plain">
@@ -17,7 +20,7 @@
     </button>
 
     <h1 class="gallery-title">Maria’s Birthday Gallery</h1>
-    <p class="gallery-sub">Tap photos to select them. Download your favourites.</p>
+    <p class="gallery-sub">Tap ✓ to select, tap ⤢ to view full screen.</p>
 
     <!-- Download Selected -->
     <button id="downloadSelected" class="big-btn small">
@@ -34,6 +37,17 @@
       <div id="grid" class="grid"></div>
     </div>
 
+  </div>
+
+  <!-- Full-screen viewer (Instagram style) -->
+  <div id="viewer" class="viewer-overlay" hidden>
+    <div class="viewer-content">
+      <button id="viewerClose" class="viewer-close">✕</button>
+      <button id="viewerPrev" class="viewer-arrow viewer-prev">‹</button>
+      <img id="viewerImg" class="viewer-img" src="" alt="Photo" />
+      <button id="viewerNext" class="viewer-arrow viewer-next">›</button>
+      <button id="viewerDownload" class="viewer-download">⬇︎ Download</button>
+    </div>
   </div>
 
   <script src="gallery.js"></script>
