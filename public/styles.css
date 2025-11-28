@@ -305,22 +305,24 @@ body.plain {
   padding-bottom: 12px;
 }
 
-/* Thumbnail */
+/* Instagram-style square thumbnails */
 .thumb {
   position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1; /* makes all thumbnails perfect squares */
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+  background: #e8e8e8;
   cursor: pointer;
-  background: #f7f7f7;
 }
 
 .thumb img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover; /* fills the square — crops thumbnail only */
   display: block;
 }
+
 
 /* Selection highlight — your Option A */
 /* .thumb.selected {
