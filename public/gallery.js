@@ -5,8 +5,8 @@ const downloadBtn = document.getElementById("downloadSelected");
 const viewer = document.getElementById("viewer");
 const viewerImg = document.getElementById("viewerImg");
 const viewerClose = document.getElementById("viewerClose");
-const viewerPrev = document.getElementById("viewerPrev");
-const viewerNext = document.getElementById("viewerNext");
+viewerPrev.addEventListener("click", () => showViewerOffset(-1));
+viewerNext.addEventListener("click", () => showViewerOffset(1));
 const viewerDownload = document.getElementById("viewerDownload");
 
 let items = [];              // Dropbox items from /list
@@ -150,6 +150,18 @@ async function openViewer(index) {
   } catch (err) {
     console.error("Viewer error:", err);
   }
+}
+async function showViewerOffset(offset) {
+  if (currentIndex === null) return;
+
+  currentIndex = currentIndex + offset;
+
+  if (currentIndex < 0) currentIndex = items.length - 1;
+  if (currentIndex >= items.length) currentIndex = 0;
+
+  const item = items[currentIndex];
+  const link = await getTempLink(item.path_display);
+  viewerImg.src = link;
 }
 
 function closeViewer() {
