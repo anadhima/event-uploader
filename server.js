@@ -10,6 +10,12 @@ const upload = multer({ dest: "temp_uploads/" });
 
 const CHUNK_SIZE = 150 * 1024 * 1024;
 
+// ---- LOADING PAGE ----
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/public/loading.html");
+});
+
+
 /* --------------------------------------------
    REFRESH TOKEN → SHORT-LIVED ACCESS TOKEN
 -------------------------------------------- */
