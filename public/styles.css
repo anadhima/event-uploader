@@ -310,20 +310,12 @@ body.hero {
 
 /* Save button is fixed near bottom center of the screen,
    always visible, not covered by Safari bars */
+
 .viewer-download {
   position: fixed;
-  left: 50%;
-  bottom: 32px;
-  transform: translateX(-50%);
-  background: #f9c4dd;
-  border: none;
-  padding: 10px 26px;
-  border-radius: 22px;
-  color: #24192e;
-  font-weight: 600;
-  cursor: pointer;
-  z-index: 10000;
+  z-index: 99999;
 }
+
 
 /* Small mobile tweaks */
 @media (max-width: 480px) {
