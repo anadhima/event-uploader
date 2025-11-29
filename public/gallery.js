@@ -178,6 +178,31 @@ async function openViewer(index) {
     console.error("VIEWER ERROR:", err);
   }
 }
+/* ============================================
+   SWIPE TO CHANGE PHOTOS
+============================================ */
+
+let touchStartX = 0;
+
+viewer.addEventListener("touchstart", (e) => {
+  touchStartX = e.changedTouches[0].screenX;
+});
+
+viewer.addEventListener("touchend", (e) => {
+  const touchEndX = e.changedTouches[0].screenX;
+  const dist = touchEndX - touchStartX;
+
+  // Swipe right → previous photo
+  if (dist > 60) {
+    showViewerOffset(-1);
+  }
+
+  // Swipe left → next photo
+  if (dist < -60) {
+    showViewerOffset(1);
+  }
+});
+
 
 function closeViewer() {
   viewer.classList.remove("open");
