@@ -8,53 +8,44 @@
 </head>
 
 <body class="plain">
+  
+  <div class="hero-card">
+    <!-- Back -->
+    <button onclick="window.location.href='index.html'" class="back-btn">
+      ← Back to Home
+    </button>
 
-  <!-- Back Button -->
-  <button onclick="window.location.href='index.html'" class="back-btn">
-    ← Back to Home
-  </button>
+    <h1 class="gallery-title">Maria’s Birthday Gallery</h1>
+    <p class="gallery-sub">Tap to select, tap ⤢ to view full screen.</p>
 
-  <!-- Header -->
-  <h1 class="gallery-title">Maria’s Birthday Gallery</h1>
-  <p class="gallery-sub">Tap to select, tap ⤢ to view full screen.</p>
+    <!-- Status text -->
+    <p id="loading" class="status">Loading…</p>
 
-  <!-- Status message (JS updates this on errors/loading) -->
-  <p id="loading" class="status"></p>
+    <!-- Download Selected -->
+    <button id="downloadSelected" class="big-btn small">
+      <span>⬇️</span> Download Selected
+    </button>
 
-  <!-- Bulk Download Button -->
-  <button id="downloadSelected" class="big-btn small">
-    ⬇️ Download Selected
-  </button>
-
-  <!-- Scrollable Gallery -->
-  <div class="gallery-wrapper">
-    <div id="grid" class="grid"></div>
-  </div>
-
-
-  <!-- ================================
-        FULL SCREEN VIEWER
-      ================================ -->
-  <div id="viewer" class="viewer-overlay" hidden>
-    <div class="viewer-content">
-
-      <button id="viewerClose" class="viewer-close">×</button>
-
-      <img id="viewerImg" class="viewer-img" src="" alt="Photo Fullscreen" />
-
-      
-      <button id="viewerDownload" class="viewer-download">
-        ⬇️ Save
-      </button>
-
+    <!-- Gallery container -->
+    <div class="gallery-wrapper">
+      <div id="grid" class="grid"></div>
     </div>
   </div>
 
-  <!-- Libraries -->
+  <!-- FULL-SCREEN VIEWER -->
+  <div id="viewer" class="viewer-overlay" hidden>
+    <div class="viewer-box">
+      <button id="viewerClose" class="viewer-close">×</button>
+      <img id="viewerImg" class="viewer-img" src="" alt="" />
+
+      <button id="viewerDownload" class="viewer-save">⬇️ Save</button>
+    </div>
+  </div>
+
+  <!-- ZIP + downloader libs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
-  <!-- Your gallery logic -->
   <script src="gallery.js"></script>
 </body>
 </html>
