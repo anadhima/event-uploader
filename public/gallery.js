@@ -9,8 +9,6 @@ const downloadBtn = document.getElementById("downloadSelected");
 const viewer = document.getElementById("viewer");
 const viewerImg = document.getElementById("viewerImg");
 const viewerClose = document.getElementById("viewerClose");
-const viewerPrev = document.getElementById("viewerPrev");
-const viewerNext = document.getElementById("viewerNext");
 const viewerDownload = document.getElementById("viewerDownload");
 
 /* State */
