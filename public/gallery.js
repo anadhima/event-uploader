@@ -2,7 +2,7 @@
    ELEMENTS
 ---------------------------------- */
 const grid = document.getElementById("grid");
-const loading = document.getElementById("loading");
+/* const loading = document.getElementById("loading");
 const downloadBtn = document.getElementById("downloadSelected");
 
 const viewer = document.getElementById("viewer");
